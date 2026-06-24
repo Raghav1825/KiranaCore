@@ -4,6 +4,7 @@ import com.kiranacore.model.Product;
 import com.kiranacore.config.DatabaseConfig;
 
 import java.sql.*;
+import java.util.*;
 
 public class ProductDAOImpl implements ProductDAO {
     @Override
@@ -78,7 +79,7 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
-    public List <Product> getAllProduct(){
+    public List <Product> getAllProducts(){
         String query = "SELECT * FROM products";
         List <Product> productsList = new ArrayList<>();
 

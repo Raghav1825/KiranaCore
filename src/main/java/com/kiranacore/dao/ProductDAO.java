@@ -3,7 +3,7 @@ package com.kiranacore.dao;
 import com.kiranacore.model.Product;
 import java.util.List;
 
-public class ProductDAO {
+public interface ProductDAO {
     void addProduct(Product product);
 
     Product getProductById(int productId);
