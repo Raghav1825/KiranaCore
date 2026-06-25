@@ -10,43 +10,54 @@ import java.sql.*;
 public class SaleDAOImpl implements SaleDAO {
     @Override
     public void recordNewSale(Sale sale,List<SaleItem> items){
-        String querySale = "INSERT INTO sales (customer_id,user_id,sale_date,total_amount) VALUES (?,?,?,?)";
+        String querySale = "INSERT INTO sales (customer_id,user_id,sale_date,total_amount,discount_applied,payment_mode) VALUES (?,?,?,?,?,?)";
         String querySaleItem = "INSERT INTO sale_items (sale_id, product_id, quantity, price_at_sale) VALUES (?,?,?,?)";
 
-        try(Connection connection = DatabaseConfig.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(querySale,Statement.RETURN_GENERATED_KEYS)){
-                preparedStatement.setTimestamp(1, sale.getSaleDate());
-                preparedStatement.setInt(2, sale.getCustomerId());
-                preparedStatement.setDouble(3, sale.getTotalAmount());
-                int affectedRows = preparedStatement.executeUpdate();
-                if(affectedRows == 0){
-                    throw new SQLException("Creating sale failed, no rows affected.");
-                }
-                try(ResultSet generatedKeys = preparedStatement.getGeneratedKeys()){
-                    if(generatedKeys.next()){
-                        sale.setSaleId(generatedKeys.getInt(1));
-                    }
-                }catch(SQLException e){
-                    System.out.println("Error in getting sale Id");
-                    e.printStackTrace();
-                }
+        try(Connection connection = DatabaseConfig.getConnection()){
+                connection.setAutoCommit(false);
+                try(PreparedStatement preparedStatement = connection.prepareStatement(querySale,Statement.RETURN_GENERATED_KEYS)){
+                    preparedStatement.setInt(1, sale.getCustomerId());
+                    preparedStatement.setInt(2, sale.getUserId());
+                    preparedStatement.setTimestamp(3, sale.getSaleDate());
+                    preparedStatement.setDouble(4, sale.getTotalAmount());
+                    preparedStatement.setDouble(5, sale.getDiscountApplied());
+                    preparedStatement.setString(6, sale.getPaymentMode());
 
-                if (items != null && !items.isEmpty()) {
-                    try (PreparedStatement itemStatement = connection.prepareStatement(querySaleItem)) {
-                        for (SaleItem item : items) {
-                            itemStatement.setInt(1, sale.getSaleId());
-                            itemStatement.setInt(2, item.getProductId());
-                            itemStatement.setDouble(3, item.getQuantity());
-                            itemStatement.setDouble(4, item.getPriceAtSale());
-                            itemStatement.addBatch();
-                        }
-                        itemStatement.executeBatch();
+                    int affectedRows = preparedStatement.executeUpdate();
+                    if(affectedRows == 0){
+                        throw new SQLException("Creating sale failed, no rows affected.");
                     }
+                    try(ResultSet generatedKeys = preparedStatement.getGeneratedKeys()){
+                        if(generatedKeys.next()){
+                            sale.setSaleId(generatedKeys.getInt(1));
+                        }
+                    }
+                    if (items != null && !items.isEmpty()) {
+                        try (PreparedStatement itemStatement = connection.prepareStatement(querySaleItem)) {
+                            for (SaleItem item : items) {
+                                itemStatement.setInt(1, sale.getSaleId());
+                                itemStatement.setInt(2, item.getProductId());
+                                itemStatement.setDouble(3, item.getQuantity());
+                                itemStatement.setDouble(4, item.getPriceAtSale());
+                                itemStatement.addBatch();
+                            }
+                            itemStatement.executeBatch();
+                        }
+                    }
+                    connection.commit();
+                }
                     catch(SQLException e){
-                        System.out.println("Error in inserting sale items");
+                        System.out.println("Error during sale processing. Rolling back transaction...");
+                        connection.rollback();
                         e.printStackTrace();
                     }
-                }
+                    finally {
+                        try {
+                            connection.setAutoCommit(true);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
             }
             catch(SQLException e){
                 System.out.println("Error in inserting sale");
