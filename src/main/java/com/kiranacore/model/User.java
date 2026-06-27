@@ -46,4 +46,8 @@ public class User {
     public void setRole(String role) {
         this.role = role;
     }
+
+    public boolean isAdmin() {
+        return "ADMIN".equalsIgnoreCase(this.role);
+    }
 }
