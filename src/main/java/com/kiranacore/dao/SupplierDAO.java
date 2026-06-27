@@ -8,7 +8,7 @@ public interface SupplierDAO {
 
     void updateSupplierDetails(Supplier supplier, String name, String contactNumber);
 
-    void updateSupplierBalance(Supplier supplier, double balance);
+    void updateSupplierBalance(int supplierId, double balance);
 
     void deleteSupplier(int supplierId);
 

@@ -38,12 +38,12 @@ public class SupplierDAOImpl implements SupplierDAO {
     }
 
     @Override
-    public void updateSupplierBalance(Supplier supplier, double balance){
-        String query = "UPDATE suppliers SET balance_due = balance_due-? WHERE supplier_id = ?";
+    public void updateSupplierBalance(int supplierId, double balance){
+        String query = "UPDATE suppliers SET balance_due = balance_due+? WHERE supplier_id = ?";
         try(Connection connection = DatabaseConfig.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setDouble(1, balance);
-            preparedStatement.setInt(2, supplier.getSupplierId());
+            preparedStatement.setInt(2, supplierId);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Error updating supplier balance");
