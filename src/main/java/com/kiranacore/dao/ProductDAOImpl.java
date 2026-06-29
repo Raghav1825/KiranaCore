@@ -12,9 +12,8 @@ public class ProductDAOImpl implements ProductDAO {
         String query = "SELECT * FROM products WHERE product_id=?";
         Product product = null;
 
-        try{
-            Connection connection = DatabaseConfig.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
+        try(Connection connection = DatabaseConfig.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query)){
 
             preparedStatement.setInt(1, productId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -40,9 +39,8 @@ public class ProductDAOImpl implements ProductDAO {
     public void updateStock(int productId,double quantity){
         String query = "UPDATE products SET current_stock=current_stock-? WHERE product_id=?";
 
-        try{
-            Connection connection = DatabaseConfig.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
+        try(Connection connection = DatabaseConfig.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query)){
             
             preparedStatement.setDouble(1, quantity);
             preparedStatement.setInt(2, productId);
@@ -59,9 +57,8 @@ public class ProductDAOImpl implements ProductDAO {
     public void addProduct(Product product){
         String query = "INSERT INTO products (name,category_id,unit,current_stock,min_stock_alert,mrp,selling_price) VALUES(?,?,?,?,?,?,?)";
         
-        try{
-            Connection connection = DatabaseConfig.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
+        try(Connection connection = DatabaseConfig.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query)){
 
             preparedStatement.setString(1, product.getName());
             preparedStatement.setInt(2, product.getCategoryId());
@@ -83,9 +80,8 @@ public class ProductDAOImpl implements ProductDAO {
         String query = "SELECT * FROM products";
         List <Product> productsList = new ArrayList<>();
 
-        try {
-            Connection connection = DatabaseConfig.getConnection();
-            Statement statement = connection.createStatement();
+        try(Connection connection = DatabaseConfig.getConnection();
+            Statement statement = connection.createStatement()){
 
             ResultSet resultSet = statement.executeQuery(query);
 
@@ -112,9 +108,8 @@ public class ProductDAOImpl implements ProductDAO {
         String query = "SELECT * FROM products WHERE current_stock <= min_stock_alert";
         List <Product> productsList = new ArrayList<>();
 
-        try{
-            Connection connection = DatabaseConfig.getConnection();
-            Statement statement = connection.createStatement();
+        try(Connection connection = DatabaseConfig.getConnection();
+            Statement statement = connection.createStatement()){
 
             ResultSet resultSet = statement.executeQuery(query);
 
