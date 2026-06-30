@@ -54,6 +54,7 @@ public class SaleDAOImpl implements SaleDAO {
                         System.out.println("Error during sale processing. Rolling back transaction...");
                         connection.rollback();
                         e.printStackTrace();
+                        throw new RuntimeException("Failed to record sale", e); 
                     }
                     finally {
                         try {
