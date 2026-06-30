@@ -30,7 +30,7 @@ public class UserDAOImpl implements UserDAO{
 
     @Override
     public User getUserByUsername(String username){
-        String query = "SELECT user_id,username,role FROM users WHERE username=?";
+        String query = "SELECT user_id,username,password_hash,role FROM users WHERE username=?";
         User user = null;
 
         try{
@@ -44,6 +44,7 @@ public class UserDAOImpl implements UserDAO{
                 user = new User();
                 user.setUserId(resultSet.getInt("user_id"));
                 user.setUsername(resultSet.getString("username"));
+                user.setPasswordHash(resultSet.getString("password_hash"));
                 user.setRole(resultSet.getString("role"));
             }
         }catch(SQLException e){

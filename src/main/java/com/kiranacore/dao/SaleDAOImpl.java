@@ -16,7 +16,11 @@ public class SaleDAOImpl implements SaleDAO {
         try(Connection connection = DatabaseConfig.getConnection()){
                 connection.setAutoCommit(false);
                 try(PreparedStatement preparedStatement = connection.prepareStatement(querySale,Statement.RETURN_GENERATED_KEYS)){
-                    preparedStatement.setInt(1, sale.getCustomerId());
+                    if (sale.getCustomerId() == 0) {
+                        preparedStatement.setNull(1, java.sql.Types.INTEGER);
+                    } else {
+                        preparedStatement.setInt(1, sale.getCustomerId());
+                    }
                     preparedStatement.setInt(2, sale.getUserId());
                     preparedStatement.setTimestamp(3, sale.getSaleDate());
                     preparedStatement.setDouble(4, sale.getTotalAmount());

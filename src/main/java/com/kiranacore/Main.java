@@ -22,7 +22,7 @@ public class Main {
         System.out.println("==============================\n");
 
         while (true) {
-            if(loggedInUser!=null){
+            if(loggedInUser==null){
                 showAuthMenu();
             }else{
                 showMainMenu();
@@ -151,7 +151,7 @@ public class Main {
         System.out.println("\nTotal bill amount: Rs."+totalAmount);
         System.out.print("Enter customer phone number(Leave blanck for walk-in customer): ");
         String phoneNo = scanner.nextLine();
-
+        String paymentMode = "CASH";
         int customerID=0;
         if(!phoneNo.isBlank()){
             Customer customer = customerDAO.getCustomerByPhone(phoneNo);
@@ -161,17 +161,27 @@ public class Main {
 
                 System.out.print("Add this to khata(credit)? (y/n): ");
                 if(scanner.nextLine().equalsIgnoreCase("y")){
-                    customerDAO.updateCustomerKhata(customerID, totalAmount);
                     System.out.println("Added Rs."+totalAmount+" to "+customer.getName()+"'s khata.");
+                    paymentMode="UDHAAR";
                 }
             }else{
                 System.out.println("Customer not found.Processing as walk-in customer");
+            }
+        }
+
+        if(!paymentMode.equals("UDHAAR")){
+            System.out.print("Enter payment mode (CASH/UPI/CARD):");
+            String inputMode = scanner.nextLine().toUpperCase();
+            if(!inputMode.isBlank()){
+                paymentMode=inputMode;
             }
         }
         Sale newSale = new Sale();
         newSale.setCustomerId(customerID);
         newSale.setTotalAmount(totalAmount);
         newSale.setUserId(loggedInUser.getUserId());
+        newSale.setPaymentMode(paymentMode);
+        newSale.setSaleDate(new java.sql.Timestamp(System.currentTimeMillis())); 
         checkoutService.processSale(newSale, cart);
         System.out.println("\n------Sale recorded successfully------");
     }

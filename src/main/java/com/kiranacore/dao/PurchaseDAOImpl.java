@@ -25,13 +25,13 @@ public class PurchaseDAOImpl implements PurchaseDAO {
                 }
                 ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
                 if(generatedKeys.next()){
-                    purchase.setPurchaseId(generatedKeys.getInt("purchase_id"));
+                    purchase.setPurchaseId(generatedKeys.getInt(1));
                 }
 
                 if(items!=null && !items.isEmpty()){
                     PreparedStatement preparedStatement2 = connection.prepareStatement(purchaseItemQuery);
                     for(PurchaseItem item:items){
-                        preparedStatement2.setInt(1, item.getPurchaseId());
+                        preparedStatement2.setInt(1, purchase.getPurchaseId());
                         preparedStatement2.setInt(2, item.getProductId());
                         preparedStatement2.setDouble(3, item.getQuantity());
                         preparedStatement2.setDouble(4, item.getBuyingPrice());
@@ -46,6 +46,7 @@ public class PurchaseDAOImpl implements PurchaseDAO {
                 System.out.println("Error during purchase. Rolling back...");
                 connection.rollback();
                 e.printStackTrace();
+                throw new RuntimeException("Failed to record purchase", e);
             }
             finally {
                 try {
