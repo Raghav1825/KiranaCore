@@ -134,7 +134,7 @@ public class Main {
             }
 
             System.out.print("Enter quantity for "+product.getName()+": ");
-            double quantity = scanner.nextDouble();
+            double quantity = Double.parseDouble(scanner.nextLine());
             SaleItem item = new SaleItem();
             item.setProductId(productID);
             item.setQuantity(quantity);
@@ -181,7 +181,7 @@ public class Main {
         System.out.print("Enter customer phone number: ");
         String phone = scanner.nextLine();
         System.out.print("Enter payment amount: ");
-        double amount = scanner.nextDouble();
+        double amount = Double.parseDouble(scanner.nextLine());
         boolean isSuccess = customerService.processKhataPayment(phone, amount);
         if(isSuccess){
             System.out.println("Payment recorded successfully");
@@ -231,7 +231,7 @@ public class Main {
                 newProduct.setSellingPrice(sellingPrice);
                 newProduct.setCurrentStock(stock);
 
-                inventoryService.addNewProductToInventory(newProduct)
+                inventoryService.addNewProductToInventory(newProduct);
                 System.out.println("---Product added successfully---");
                 break;
             case "3":
@@ -242,4 +242,108 @@ public class Main {
         }
     }
 
+    private static void handlePurchaseFlow(){
+        System.out.println("\n----New Purchase-----");
+        
+        SupplierDAO supplierDAO = new SupplierDAOImpl();
+        ProductDAO productDAO = new ProductDAOImpl();
+
+        System.out.print("Enter supplier contact number: ");
+        String phone = scanner.nextLine();
+
+        Supplier supplier = supplierDAO.getSupplierByContactNumber(phone);
+        if(supplier==null){
+            System.out.println("Supplier not found. Please register the supplier first.");
+            System.out.print("Enter supplier name to register: ");
+            String name = scanner.nextLine();
+            supplier = new Supplier();
+            supplier.setSupplierName(name);
+            supplier.setContactNumber(phone);
+            supplier.setBalanceDue(0.0);
+            supplierDAO.addSupplier(supplier);
+            
+            supplier = supplierDAO.getSupplierByContactNumber(phone); 
+            System.out.println("New supplier registered successfully.");
+        }
+        System.out.println("Linked to supplier: "+supplier.getSupplierName());
+
+        List <Product> allProduct = productDAO.getAllProducts();
+        System.out.println("\n-----Available Products-----");
+        for(Product p:allProduct){
+            System.out.println("ID:"+p.getProductId()+" | Name:"+p.getName());
+        }
+        System.out.println("--------------------------");
+
+        List<PurchaseItem> purchaseItems = new ArrayList<>();
+        double totalAmount = 0.0;
+
+        while(true){
+            System.out.print("\nEnter Product ID (or type '0' to finish): ");
+            int productID;
+            try{
+                productID = Integer.parseInt(scanner.nextLine());
+            }catch(NumberFormatException e){
+                System.out.println("Invalid Input! Enter a valid number");
+                continue;
+            }
+
+            if(productID==0){
+                break;
+            }
+
+            Product product = productDAO.getProductById(productID);
+            if(product==null){
+                System.out.println("Product not found");
+                continue;
+            }
+            System.out.println("Selected: "+product.getName()+" (Current Stock: "+product.getCurrentStock()+")");
+
+            System.out.print("Enter Purchase quantity: ");
+            double quantity = Double.parseDouble(scanner.nextLine());
+            System.out.print("Enter buying price per unit: ");
+            double buyingPrice = Double.parseDouble(scanner.nextLine());
+
+            System.out.print("Enter expiry date (YYYY-MM-DD) or leave blank if not applicable: ");
+            String expiryStr = scanner.nextLine();
+            java.sql.Date expiryDate = null;
+            if(!expiryStr.isBlank()){
+                try {
+                    expiryDate = java.sql.Date.valueOf(expiryStr);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid date format. Expiry date will be ignored.");
+                }
+            }
+            PurchaseItem item = new PurchaseItem();
+            item.setProductId(productID);
+            item.setQuantity(quantity);
+            item.setBuyingPrice(buyingPrice);
+            item.setExpiryDate(expiryDate);
+
+            purchaseItems.add(item);
+            double Subtotal = quantity*buyingPrice;
+            totalAmount += Subtotal;
+            System.out.println("Added: " + quantity + "x " + product.getName() + " | Subtotal: Rs." + Subtotal);
+        }
+
+        if(purchaseItems.isEmpty()){
+            System.out.println("Purchase cancelled. No items added.");
+            return;
+        }
+
+        System.out.println("\nTotal Purchase Amount: Rs." + totalAmount);
+        System.out.print("Enter amount paid upfront: ");
+        double amountPaidUpfront = Double.parseDouble(scanner.nextLine());
+
+        Purchase purchase = new Purchase();
+        purchase.setSupplierId(supplier.getSupplierId());
+        purchase.setTotalAmount(totalAmount);
+        purchase.setPurchaseDate(new java.sql.Timestamp(System.currentTimeMillis()));
+
+        boolean success = inventoryService.processPurchase(purchase, purchaseItems, amountPaidUpfront);
+        if(success){
+            System.out.println("Purchase recorded successfully.");
+        }else{
+            System.out.println("Failed to record purchase.");
+        }
+    }
 }
