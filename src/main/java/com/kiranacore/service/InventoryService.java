@@ -8,6 +8,7 @@ public class InventoryService {
     private PurchaseDAO purchaseDAO = new PurchaseDAOImpl();
     private ProductDAO productDAO = new ProductDAOImpl();
     private SupplierDAO supplierDAO = new SupplierDAOImpl();
+    private CategoryDAO categoryDAO = new CategoryDAOImpl();
     
     public boolean processPurchase(Purchase purchase,List<PurchaseItem> items,double amountPaidUpfront){
         try{
@@ -73,4 +74,7 @@ public class InventoryService {
         }
     }
     
+    public List<Category> getAllCategories(){
+        return categoryDAO.getAllCategories();
+    }
 }
